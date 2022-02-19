@@ -100,8 +100,13 @@ class pointnet_seg(tf.keras.Model):
                               padding="valid", stride = [1,1],
                               bn = True, is_training = is_training)
 
+        # B*N*1*128 => B*N*1*50
+        # question: why this layer don't need training?
         net = tf_utils.conv2d(net, 50, [1, 1],
                               padding="valid",stride = [1, 1],
                               activation_fn = None)
+
+        # B*N*1*50 => B*N*50
+        net = tf.squeeze(net, [2])
 
         return net, end_points
