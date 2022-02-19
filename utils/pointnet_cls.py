@@ -4,6 +4,7 @@ import tf_utils
 from transform_net import input_transform_layer, feature_transform_layer
 
 class pointnet_cls(tf.keras.Model):
+    # Classification PointNet, input is BxNx3, output Bx40
     def __init__(self):
         super(pointnet_cls).__init__()
         self.input_transform = input_transform_layer()
@@ -73,10 +74,10 @@ class pointnet_cls(tf.keras.Model):
 
         # Symmetric function: max pooling
         # try to make model invariant to permutation of point cloud
-        # B*N*1*1024 => B*1*1024
+        # B*N*1*1024 => B*1*1*1024
         net = tf_utils.max_pool2d(net, [num_point, 1],
                                   padding = "valid")
-        # B*1*1024 => B*1024
+        # B*1*1*1024 => B*1024
         net = tf.reshape(net, [batch_size, -1])
 
         # the fully-connect layers maybe extract information from
