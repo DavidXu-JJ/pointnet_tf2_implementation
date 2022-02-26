@@ -193,8 +193,6 @@ def mlp_block(x: tf.Tensor, filters: int, name: str) -> tf.Tensor:
     return layers.Activation("relu", name=f"{name}_relu")(x)
 
 class OrthogonalRegularizer(keras.regularizers.Regularizer):
-    """Reference: https://keras.io/examples/vision/pointnet/#build-a-model"""
-
     def __init__(self, num_features, l2reg=0.001):
         self.num_features = num_features
         self.l2reg = l2reg
@@ -207,12 +205,6 @@ class OrthogonalRegularizer(keras.regularizers.Regularizer):
         return tf.reduce_sum(self.l2reg * tf.square(xxt - self.identity))
 
 def transformation_net(inputs: tf.Tensor, num_features: int, name: str) -> tf.Tensor:
-    """
-    Reference: https://keras.io/examples/vision/pointnet/#build-a-model.
-
-    The `filters` values come from the original paper:
-    https://arxiv.org/abs/1612.00593.
-    """
     x = conv_block(inputs, filters=64, name=f"{name}_1")
     x = conv_block(x, filters=128, name=f"{name}_2")
     x = conv_block(x, filters=1024, name=f"{name}_3")
@@ -238,7 +230,6 @@ def transformation_block(inputs: tf.Tensor, num_features: int, name: str) -> tf.
 def get_shape_segmentation_model(num_points: int, num_classes: int) -> keras.Model:
     input_points = keras.Input(shape=(None, 3))
 
-    # PointNet Classification Network.
     transformed_inputs = transformation_block(
         input_points, num_features=3, name="input_transformation_block"
     )
@@ -255,7 +246,6 @@ def get_shape_segmentation_model(num_points: int, num_classes: int) -> keras.Mod
     )
     global_features = tf.tile(global_features, [1, num_points, 1])
 
-    # Segmentation head.
     segmentation_input = layers.Concatenate(name="segmentation_input")(
         [
             features_64,
@@ -295,11 +285,6 @@ lr_schedule = keras.optimizers.schedules.PiecewiseConstantDecay(
 steps = tf.range(total_training_steps, dtype=tf.int32)
 lrs = [lr_schedule(step) for step in steps]
 
-# plt.plot(lrs)
-# plt.xlabel("Steps")
-# plt.ylabel("Learning Rate")
-# plt.show()
-
 
 def run_experiment(epochs):
 
@@ -330,8 +315,6 @@ def run_experiment(epochs):
         #callbacks=[checkpoint_callback],
         callbacks=[tensorboard_callback],
     )
-
-
 
     segmentation_model.save_weights("model.h5")
     return segmentation_model, history
